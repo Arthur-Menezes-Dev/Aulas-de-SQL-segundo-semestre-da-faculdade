@@ -746,3 +746,250 @@ where p.total > (select avg(total) From Pedido);
 select pr.codigo, pr.descricao
 from Produto pr left join itemPedido ip on pr.codigo=ip.codprod
 where ip.codProd is null;
+
+
+CREATE DATABASE mercadodoze;
+
+USE mercadodoze;
+
+CREATE TABLE Cliente(
+    codigo INT Primary Key Auto_Increment,
+    nome VARCHAR(50) NOT NULL,
+    estado VARCHAR(2) NOT NULL,
+    email VARCHAR(30) NOT NULL,
+    data_nascimento DATE NOT NULL
+);
+
+CREATE TABLE Pedido(
+    codigo INT PRIMARY KEY Auto_Increment,
+    data DATE NOT NULL,
+    total FLOAT NOT NULL,
+    codigo_cliente INT,
+    FOREIGN KEY (codigo_cliente) REFERENCES Cliente(codigo)
+);
+
+CREATE TABLE Endereco(
+    CEP VARCHAR(8) NOT NULL,
+    logradouro VARCHAR(40) NOT NULL,
+    numero VARCHAR(5) NOT NULL,
+    codigo_pedido INT UNIQUE,
+    FOREIGN KEY (codigo_pedido) REFERENCES Pedido(codigo)
+);
+
+CREATE TABLE Produto(
+    codigo INT PRIMARY KEY Auto_Increment,
+    descricao VARCHAR(20) NOT NULL,
+    preco_unitario FLOAT NOT NULL
+);
+
+CREATE TABLE ItemPedido(
+    codPed INT NOT NULL,
+    codProd INT NOT NULL,
+    quantidade INT NOT NULL,
+    subtotal FLOAT NOT NULL,
+    PRIMARY KEY (codPed,codProd),
+    FOREIGN KEY (codPed) REFERENCES Pedido(codigo),
+    FOREIGN KEY (codProd) REFERENCES Produto(codigo)
+);
+
+
+-- ==========================================================
+-- 1. INSERTS NA TABELA PRODUTO (10 Produtos)
+-- ==========================================================
+INSERT INTO Produto (descricao, preco_unitario) VALUES
+('Arroz 5kg', 25.50),
+('Feijão 1kg', 8.50),
+('Óleo de Soja 900ml', 6.80),
+('Açúcar 1kg', 4.20),
+('Café 500g', 16.90),
+('Leite 1L', 4.80),
+('Macarrão 500g', 3.50),
+('Detergente 500ml', 2.20),
+('Sabão em Pó 1kg', 12.90),
+('Papel Higiênico 12un', 18.00);
+
+-- ==========================================================
+-- 2. INSERTS NA TABELA CLIENTE (10 Clientes de vários estados)
+-- ==========================================================
+INSERT INTO Cliente (nome, estado, email, data_nascimento) VALUES
+('Ana Silva', 'SP', 'ana.silva@email.com', '1990-05-15'),
+('Bruno Costa', 'RJ', 'bruno.costa@email.com', '1985-10-20'),
+('Carla Souza', 'MG', 'carla.souza@email.com', '1998-02-12'),
+('Daniel Oliveira', 'SP', 'daniel.oli@email.com', '1975-08-30'),
+('Eduarda Lima', 'PR', 'eduarda.lima@email.com', '2001-11-05'),
+('Fernando Rocha', 'SC', 'fernando.rocha@email.com', '1992-04-18'),
+('Gabriela Santos', 'SP', 'gabi.santos@email.com', '1988-07-22'),
+('Heitor Alves', 'RJ', 'heitor.alves@email.com', '1995-01-10'),
+('Isabela Mendes', 'MG', 'isabela.mendes@email.com', '2000-09-09'),
+('João Pereira', 'RS', 'joao.pereira@email.com', '1982-12-03');
+
+-- ==========================================================
+-- 3. INSERTS NA TABELA PEDIDO
+-- (Soma exata dos subtotais de ItemPedido)
+-- ==========================================================
+INSERT INTO Pedido (codigo, data, total, codigo_cliente) VALUES
+(1, '2024-01-10', 59.50, 1),   -- Ana Silva (2x Arroz + 1x Feijão)
+(2, '2024-01-15', 38.60, 1),   -- Ana Silva (2x Café + 1x Leite)
+(3, '2024-01-18', 21.00, 2),   -- Bruno Costa (5x Açúcar)
+(4, '2024-01-20', 106.80, 3),  -- Carla Souza (3x Arroz + 1x Óleo + 2x Sabão em Pó)
+(5, '2024-01-22', 14.40, 4),   -- Daniel Oliveira (3x Leite)
+(6, '2024-02-01', 54.00, 4),   -- Daniel Oliveira (3x Papel Higiênico)
+(7, '2024-02-05', 70.00, 4),   -- Daniel Oliveira (2x Arroz + 1x Sabão em Pó + 1x Feijão)
+(8, '2024-02-10', 43.80, 5),   -- Eduarda Lima (2x Café + 2x Macarrão + 1x Detergente)
+(9, '2024-02-12', 34.00, 6),   -- Fernando Rocha (4x Feijão)
+(10, '2024-02-15', 76.50, 7),  -- Gabriela Santos (3x Arroz)
+(11, '2024-02-18', 27.20, 7),  -- Gabriela Santos (4x Óleo)
+(12, '2024-02-20', 36.00, 8),  -- Heitor Alves (2x Papel Higiênico)
+(13, '2024-02-22', 43.60, 9),  -- Isabela Mendes (2x Café + 2x Leite)
+(14, '2024-02-25', 102.00, 10),-- João Pereira (4x Arroz)
+(15, '2024-02-28', 19.80, 10); -- João Pereira (3x Óleo de Soja)
+
+-- ==========================================================
+-- 4. INSERTS NA TABELA ENDERECO (Relação 1:1 com Pedido)
+-- ==========================================================
+INSERT INTO Endereco (CEP, logradouro, numero, codigo_pedido) VALUES
+('01001000', 'Praça da Sé', '100', 1),
+('01001000', 'Praça da Sé', '100', 2),
+('20040002', 'Rua da Assembleia', '45', 3),
+('30130010', 'Avenida Afonso Pena', '500', 4),
+('04001001', 'Rua Vergueiro', '1230', 5),
+('04001001', 'Rua Vergueiro', '1230', 6),
+('04001001', 'Rua Vergueiro', '1230', 7),
+('80010000', 'Rua XV de Novembro', '250', 8),
+('88010000', 'Felipe Schmidt', '88', 9),
+('01310000', 'Avenida Paulista', '1500', 10),
+('01310000', 'Avenida Paulista', '1500', 11),
+('20010000', 'Rua do Ouvidor', '12', 12),
+('30110000', 'Avenida do Contorno', '3000', 13),
+('90010000', 'Rua dos Andradas', '400', 14),
+('90010000', 'Rua dos Andradas', '400', 15);
+
+-- ==========================================================
+-- 5. INSERTS NA TABELA ITEMPEDIDO
+-- (subtotal = quantidade * preco_unitario do produto)
+-- ==========================================================
+INSERT INTO ItemPedido (codPed, codProd, quantidade, subtotal) VALUES
+-- Pedido 1 (Total: 59.50)
+(1, 1, 2, 51.00), -- 2x Arroz (25.50 * 2)
+(1, 2, 1, 8.50),  -- 1x Feijão (8.50 * 1)
+
+-- Pedido 2 (Total: 38.60)
+(2, 5, 2, 33.80), -- 2x Café (16.90 * 2)
+(2, 6, 1, 4.80),  -- 1x Leite (4.80 * 1)
+
+-- Pedido 3 (Total: 21.00)
+(3, 4, 5, 21.00), -- 5x Açúcar (4.20 * 5)
+
+-- Pedido 4 (Total: 106.80)
+(4, 1, 3, 76.50), -- 3x Arroz (25.50 * 3)
+(4, 3, 1, 6.80),  -- 1x Óleo (6.80 * 1)
+(4, 9, 2, 25.80), -- 2x Sabão em Pó (12.90 * 2)
+
+-- Pedido 5 (Total: 14.40)
+(5, 6, 3, 14.40), -- 3x Leite (4.80 * 3)
+
+-- Pedido 6 (Total: 54.00)
+(6, 10, 3, 54.00),-- 3x Papel Higiênico (18.00 * 3)
+
+-- Pedido 7 (Total: 70.00)
+(7, 1, 2, 51.00), -- 2x Arroz (25.50 * 2)
+(7, 2, 1, 8.50),  -- 1x Feijão (8.50 * 1)
+(7, 9, 1, 12.90), -- 1x Sabão em Pó (12.90 * 1)
+
+-- Pedido 8 (Total: 43.80)
+(8, 5, 2, 33.80), -- 2x Café (16.90 * 2)
+(8, 7, 2, 7.00),  -- 2x Macarrão (3.50 * 2)
+(8, 8, 1, 2.20),  -- 1x Detergente (2.20 * 1)
+
+-- Pedido 9 (Total: 34.00)
+(9, 2, 4, 34.00), -- 4x Feijão (8.50 * 4)
+
+-- Pedido 10 (Total: 76.50)
+(10, 1, 3, 76.50),-- 3x Arroz (25.50 * 3)
+
+-- Pedido 11 (Total: 27.20)
+(11, 3, 4, 27.20),-- 4x Óleo (6.80 * 4)
+
+-- Pedido 12 (Total: 36.00)
+(12, 10, 2, 36.00),-- 2x Papel Higiênico (18.00 * 2)
+
+-- Pedido 13 (Total: 43.60)
+(13, 5, 2, 33.80),-- 2x Café (16.90 * 2)
+(13, 6, 2, 9.60), -- 2x Leite (4.80 * 2)
+
+-- Pedido 14 (Total: 102.00)
+(14, 1, 4, 102.00),-- 4x Arroz (25.50 * 4)
+
+-- Pedido 15 (Total: 19.80)
+(15, 3, 3, 20.40);-- 3x Óleo (6.80 * 3)
+
+
+
+
+-- Funções (Soma "sum", Contagem "Count", Média "Avarage", Máximo "Max", Minimo "min")
+select sum(total) Faturamento_Total from Pedido;
+
+select count(total) QtPedidos from Pedido;
+
+select max(total) Maior_Pedido from Pedido;
+        
+select min(total) Menor_Pedido from Pedido;
+
+select round(avg(total),2) Media_Pedido From Pedido;
+
+select round(sum(total),2) Faturamento_Total,
+		 count(total) QtPedidos,
+         max(total) Maior_Pedido,
+         min(total) Menor_Pedido,
+         round(avg(total),2) Valor_Medio
+	from Pedido;
+    
+-- 1) Soma Total Vendida por cada Cliente
+
+select codigo_cliente,
+round(sum(total),2) total_Faturamento
+ from Pedido p inner join Cliente c on c.codigo=p.codigo_cliente
+ Group By codigo_cliente
+ order by Total_Faturamento desc;
+ 
+ -- 2) Quantidade vendida de cada Produto. 
+ 
+ Select codProd, Sum(quantidade) "Total Vendas(UN)"
+	from itemPedido i inner join Produto p on i.codProd=p.codigo
+    group by codProd;
+    
+    -- 3) Quantidade de clientes cadastrados por estado
+select estado, count(codigo) as "Quantidade Clientes"
+from cliente
+group by (estado);
+
+-- distinct (não repete valores de uma coluna na consulta)
+
+-- lista dos estados onde existem os clientes cadastrados (sem Repetições) 
+
+select distinct estado from Cliente; 
+
+-- lista dos clientes que já efetuaram pelo menos um pedido
+select distinct codigo_cliente, c.nome
+ from Pedido p inner join Cliente c on c.codigo=p.codigo_cliente
+ order by c.nome desc;
+ 
+ -- lista dos produtos quue já foram vendidos pelo menos 1 vez
+ 
+ select distinct codProd, p.descricao
+	from itemPedido i inner join Produto p on i.codProd=p.codigo;
+    
+-- SubQueries (SubConsultas): Consulta dentro de outra consulta
+-- Nome dos clientes que fizeram compras com o valor acima da media de todos os pedidos. 
+
+select distinct c.nome, c.email, p.total
+from Cliente c inner join Pedido p on c.codigo = p.codigo_cliente
+where p.total > (select avg(total) From Pedido);
+
+-- lista dos clientes que já efetuaram produtos que nunca foram vendidos em nenhum pedido registrado. 
+
+select pr.codigo, pr.descricao
+from Produto pr left join itemPedido ip on pr.codigo=ip.codprod
+where ip.codProd is null;
+
+insert into produto(codigo, descricao,preco_unitario) Values(11,'Tomate Verde 1KG',10);
