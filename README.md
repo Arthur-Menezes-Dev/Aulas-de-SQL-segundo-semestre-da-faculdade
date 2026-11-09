@@ -647,6 +647,102 @@ select cli.nome, ped.data, pro.descricao,pro.preco_unitario,item.quantidade,item
 
         
 	-- 1 select * so escrefvo. as colunas é o ultimo 2 from e vejo a modelagem. 
+
+
+
+# Aula do Dia 09/11/2026
+
+-- Funções (Soma "sum", Média "Avarage", Máximo "Max", Minimo "min")
+select sum(total) from Pedido;
+
+Sum Pegou a coluna total e somou Tudo. 
+
+
+-- Funções (Soma "sum", Contagem "Count", Média "Avarage", Máximo "Max", Minimo "min")
+select sum(total) Faturamento_Total from Pedido;
+
+select count(total) QtPedidos from Pedido;
+
+select max(total) Maior_Pedido from Pedido;
         
+select min(total) Menor_Pedido from Pedido;
+
+select avg(total) Media_Pedido From Pedido;
+
+Também podemos nomear as colunas como vemos aqui. 
+
+select round(avg(total),2) Media_Pedido From Pedido; deixa só 2 casas depois do ponto. 
+
+select round(sum(total),2) Faturamento_Total,
+		 count(total) QtPedidos,
+         max(total) Maior_Pedido,
+         min(total) Menor_Pedido,
+         round(avg(total),2) Valor_Medio
+	from Pedido;
+
+select  sum(total) total_Faturamento from Pedido Group By codigo_cliente;
 
 
+select codigo_cliente,
+round(sum(total),2) total_Faturamento
+ from Pedido Group By codigo_cliente;
+
+
+ select codigo_cliente,
+round(sum(total),2) total_Faturamento
+ from Pedido p inner join Cliente c on c.codigo=p.codigo_cliente
+ Group By codigo_cliente;
+
+ group by é quando vc vai utilizar uma função e agrupa os itens a serem analisados.
+
+
+ Select codProd, Sum(quantidade) "Total Vendas(UN)"
+	from itemPedido i inner join Produto p on i.codProd=p.codigo
+    group by codProd;
+
+Quando eu quiser colocar 2 palavras separadas uma da outra eu apenas coloco elas entre aspas
+
+-- 3) Quantidade de clientes cadastrados por estado
+select estado, count(codigo) as "Quantidade Clientes"
+from cliente
+group by (estado);
+
+
+oreder by deixar em ordem alfabetica  ou numerica. asc ordem alfabetica ou numerica, desc ordem oposta a asc. o order by vai sempre por ultimo. 
+
+select codigo_cliente,
+round(sum(total),2) total_Faturamento
+ from Pedido p inner join Cliente c on c.codigo=p.codigo_cliente
+ Group By codigo_cliente
+ order by Total_Faturamento desc;
+
+
+ -- distinct (não repete valores de uma coluna na consulta)
+
+select distinct estado from Cliente; 
+
+
+-- lista dos clientes que já efetuaram pelo menos um pedido
+select distinct codigo_cliente from Pedido;
+
+-- lista dos clientes que já efetuaram pelo menos um pedido
+select distinct codigo_cliente, c.nome
+ from Pedido p inner join Cliente c on c.codigo=p.codigo_cliente;
+
+ -- lista dos produtos quue já foram vendidos pelo menos 1 vez
+ 
+ select distinct codProd, p.descricao
+	from itemPedido i inner join Produto p on i.codProd=p.codigo;
+
+
+
+
+	select distinct c.nome, c.email, p.total
+from Cliente c inner join Pedido p on c.codigo = p.codigo_cliente
+where p.total > (select avg(total) From Pedido);
+
+-- lista dos clientes que já efetuaram produtos que nunca foram vendidos em nenhum pedido registrado. 
+
+select pr.codigo, pr.descricao
+from Produto pr left join itemPedido ip on pr.codigo=ip.codprod
+where ip.codProd is null;
